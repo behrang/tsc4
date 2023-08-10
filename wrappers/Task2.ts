@@ -1,4 +1,4 @@
-import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from 'ton-core'
+import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode, TupleBuilder, TupleItem } from 'ton-core'
 
 export type Task2Config = {}
 
@@ -25,5 +25,17 @@ export class Task2 implements Contract {
             sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell().endCell(),
         })
+    }
+
+    async getMatrixMultiplier(provider: ContractProvider, matrixA: TupleItem[], matrixB: TupleItem[]): Promise<TupleItem[]> {
+        const tb = new TupleBuilder()
+        tb.writeTuple(matrixA)
+        tb.writeTuple(matrixB)
+        const result = await provider.get('matrix_multiplier', tb.build())
+        const t = result.stack.pop()
+        if (t.type !== 'tuple') {
+            throw 'expected a tuple'
+        }
+        return t.items
     }
 }

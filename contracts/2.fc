@@ -9,11 +9,33 @@
   After calculating the result matrix, the function should return final result (as tuple).
 -}
 
+int tlen(tuple) asm "TLEN";
+
 () recv_internal() {
 }
 
 ;; testable
 (tuple) matrix_multiplier(tuple matrixA, tuple matrixB) method_id {
-  return null();
+    int rows = matrixA.tlen();
+    int muls = matrixB.tlen();
+    int cols = matrixB.at(0).tlen();
+    tuple result = empty_tuple();
+    int i = 0;
+    repeat (rows) {
+        tuple row = empty_tuple();
+        int j = 0;
+        repeat (cols) {
+            int sum = 0;
+            int k = 0;
+            repeat (muls) {
+                sum += matrixA.at(i).at(k) * matrixB.at(k).at(j);
+                k += 1;
+            }
+            row~tpush(sum);
+            j += 1;
+        }
+        result~tpush(row);
+        i += 1;
+    }
+    return result;
 }
-
