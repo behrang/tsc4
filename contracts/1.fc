@@ -9,7 +9,25 @@
 () recv_internal() {
 }
 
+(cell) find_recursive(int hash, cell tree) {
+    if (tree.cell_hash() == hash) {
+        return tree;
+    }
+    slice s = tree.begin_parse();
+    while (s.slice_refs()) {
+        cell found = find_recursive(hash, s~load_ref());
+        ifnot (found.null?()) {
+            return found;
+        }
+    }
+    return null();
+}
+
 ;; testable
 (cell) find_branch_by_hash(int hash, cell tree) method_id {
-  return begin_cell().end_cell();
+    cell found = find_recursive(hash, tree);
+    ifnot (found.null?()) {
+        return found;
+    }
+    return begin_cell().end_cell();
 }
