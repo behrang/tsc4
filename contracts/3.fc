@@ -104,7 +104,7 @@ int ubitsize(int) asm "UBITSIZE";
     } until (stop?);
 
     cell c = b.end_cell();
-    while (chain.tlen() > 0) {
+    while (chain.tlen()) {
         ( b, chain ) = uncons(chain);
         c = b.store_ref(c).end_cell();
     }
