@@ -1,8 +1,8 @@
-{- 
+{-
   TASK 3 - Find and replace binary substring
   Binary string is represented as a cell linked list: string splitted to chunks,
   first chunk stored to the root cell, next one to the cell in ref and so on;
-  each cell can have only one ref. 
+  each cell can have only one ref.
   Write the method that find and replaces one flags in the binary string
   with another value. Flags and values can be can be of any length, but
   strictly up to 128 bits. The method must replace every flag it finds.
@@ -16,11 +16,97 @@
 
 -}
 
+int tlen(tuple) asm "TLEN";
+int ubitsize(int) asm "UBITSIZE";
+
 () recv_internal() {
+}
+
+(tuple, builder) check_remaining(tuple chain, builder b, int l) {
+    if (l > 1023 - b.builder_bits()) {
+        chain = cons(b, chain);
+        b = begin_cell();
+    }
+    return (chain, b);
 }
 
 ;; testable
 (cell) find_and_replace(int flag, int value, cell linked_list) method_id {
-  return begin_cell().end_cell();
-}
+    int fl = ubitsize(flag);
+    int vl = ubitsize(value);
+    tuple chain = empty_tuple();
+    builder b = begin_cell();
+    slice s = linked_list.begin_parse();
 
+    slice ss = ""s;
+    int ss_bits = 0;
+    if (s.slice_refs()) {
+        ss = s.preload_ref().begin_parse();
+        ss_bits = ss.slice_bits();
+    }
+
+    int stop? = false;
+    do {
+        ( int bits, int refs ) = s.slice_bits_refs();
+        if (bits >= fl) {
+            int w = s.preload_uint(fl);
+            if (w == flag) {
+                s~skip_bits(fl);
+                ( chain, b ) = check_remaining(chain, b, vl);
+                b = b.store_uint(value, vl);
+            } else {
+                int bit = s~load_uint(1);
+                ( chain, b ) = check_remaining(chain, b, 1);
+                b = b.store_uint(bit, 1);
+            }
+        } elseif (bits > 0) {
+            int w = s.preload_uint(bits);
+            int rest_bits = fl - bits;
+            if (ss_bits < rest_bits) {
+                ( chain, b ) = check_remaining(chain, b, bits);
+                b = b.store_uint(w, bits);
+                if (ss_bits > 0) {
+                    ( chain, b ) = check_remaining(chain, b, ss_bits);
+                    b = b.store_slice(ss);
+                }
+                stop? = true;
+            } else {
+                w <<= rest_bits;
+                w += ss.preload_uint(rest_bits);
+                if (w == flag) {
+                    ( chain, b ) = check_remaining(chain, b, vl);
+                    b = b.store_uint(value, vl);
+                    s = ss;
+                    s~skip_bits(rest_bits);
+                    ss = ""s;
+                    ss_bits = 0;
+                    if (s.slice_refs()) {
+                        ss = s.preload_ref().begin_parse();
+                        ss_bits = ss.slice_bits();
+                    }
+                } else {
+                    int bit = s~load_uint(1);
+                    ( chain, b ) = check_remaining(chain, b, 1);
+                    b = b.store_uint(bit, 1);
+                }
+            }
+        } elseif (refs > 0) {
+            s = ss;
+            ss = ""s;
+            ss_bits = 0;
+            if (s.slice_refs()) {
+                ss = s.preload_ref().begin_parse();
+                ss_bits = ss.slice_bits();
+            }
+        } else {
+            stop? = true;
+        }
+    } until (stop?);
+
+    cell c = b.end_cell();
+    while (chain.tlen() > 0) {
+        ( b, chain ) = uncons(chain);
+        c = b.store_ref(c).end_cell();
+    }
+    return c;
+}

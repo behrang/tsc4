@@ -1,4 +1,4 @@
-import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from 'ton-core'
+import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode, TupleBuilder } from 'ton-core'
 
 export type Task3Config = {}
 
@@ -25,5 +25,14 @@ export class Task3 implements Contract {
             sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell().endCell(),
         })
+    }
+
+    async getFindAndReplace(provider: ContractProvider, flag: bigint, value: bigint, linkedList: Cell): Promise<Cell> {
+        const tb = new TupleBuilder()
+        tb.writeNumber(flag)
+        tb.writeNumber(value)
+        tb.writeCell(linkedList)
+        const result = await provider.get('find_and_replace', tb.build())
+        return result.stack.readCell()
     }
 }
