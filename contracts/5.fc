@@ -18,19 +18,20 @@
 
 ;; testable
 (tuple) fibonacci_sequence (int n, int k) method_id {
-    tuple r = empty_tuple();
-    int n-2 = -1;
-    int n-1 = 1;
-
-    while (n) {
-        n -= 1;
-        ( n-1, n-2 ) = (n-2 + n-1, n-1);
+    int f1 = 1;
+    int f2 = -1;
+    repeat (n) {
+        int t = f1 + f2;
+        f2 = f1;
+        f1 = t;
     }
 
-    while (k) {
-        k -= 1;
-        ( n-1, n-2 ) = (n-2 + n-1, n-1);
-        r~tpush(n-1);
+    tuple r = empty_tuple();
+    repeat (k) {
+        int t = f1 + f2;
+        f2 = f1;
+        f1 = t;
+        r~tpush(f1);
     }
 
     return r;
