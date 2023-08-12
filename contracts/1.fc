@@ -20,7 +20,7 @@ int tlen(tuple) asm "TLEN";
             return c;
         }
         slice s = c.begin_parse();
-        while (s.slice_refs()) {
+        repeat (s.slice_refs()) {
             stack = cons(s~load_ref(), stack);
         }
     } until (stack.tlen() == 0);
