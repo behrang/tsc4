@@ -6,14 +6,12 @@
   this branch should be returned. Return empty cell if the branch is not found.
 -}
 
-int tlen(tuple) asm "TLEN";
-
 () recv_internal() {
 }
 
 ;; testable
 (cell) find_branch_by_hash(int hash, cell tree) method_id {
-    tuple stack = cons(tree, empty_tuple());
+    tuple stack = cons(tree, null());
     do {
         ( cell c, stack ) = uncons(stack);
         if (c.cell_hash() == hash) {
@@ -23,6 +21,6 @@ int tlen(tuple) asm "TLEN";
         repeat (s.slice_refs()) {
             stack = cons(s~load_ref(), stack);
         }
-    } until (stack.tlen() == 0);
+    } until (stack.null?());
     return begin_cell().end_cell();
 }

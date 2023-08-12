@@ -16,7 +16,6 @@
 
 -}
 
-int tlen(tuple) asm "TLEN";
 int ubitsize(int) asm "UBITSIZE";
 
 () recv_internal() {
@@ -34,7 +33,7 @@ int ubitsize(int) asm "UBITSIZE";
 (cell) find_and_replace(int flag, int value, cell linked_list) method_id {
     int fl = ubitsize(flag);
     int vl = ubitsize(value);
-    tuple chain = empty_tuple();
+    tuple chain = null();
     builder b = begin_cell();
     slice s = linked_list.begin_parse();
 
@@ -104,7 +103,7 @@ int ubitsize(int) asm "UBITSIZE";
     } until (stop?);
 
     cell c = b.end_cell();
-    while (chain.tlen()) {
+    while (~ chain.null?()) {
         ( b, chain ) = uncons(chain);
         c = b.store_ref(c).end_cell();
     }
