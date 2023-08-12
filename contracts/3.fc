@@ -22,7 +22,7 @@ int ubitsize(int) asm "UBITSIZE";
 () recv_internal() {
 }
 
-(tuple, builder) check_remaining(tuple chain, builder b, int l) {
+(tuple, builder) check_remaining(tuple chain, builder b, int l) inline {
     if (l > 1023 - b.builder_bits()) {
         chain = cons(b, chain);
         b = begin_cell();
@@ -59,13 +59,13 @@ int ubitsize(int) asm "UBITSIZE";
                 ( chain, b ) = check_remaining(chain, b, 1);
                 b = b.store_uint(bit, 1);
             }
-        } elseif (bits > 0) {
+        } elseif (bits) {
             int w = s.preload_uint(bits);
             int rest_bits = fl - bits;
             if (ss_bits < rest_bits) {
                 ( chain, b ) = check_remaining(chain, b, bits);
                 b = b.store_uint(w, bits);
-                if (ss_bits > 0) {
+                if (ss_bits) {
                     ( chain, b ) = check_remaining(chain, b, ss_bits);
                     b = b.store_slice(ss);
                 }
@@ -90,7 +90,7 @@ int ubitsize(int) asm "UBITSIZE";
                     b = b.store_uint(bit, 1);
                 }
             }
-        } elseif (refs > 0) {
+        } elseif (refs) {
             s = ss;
             ss = ""s;
             ss_bits = 0;

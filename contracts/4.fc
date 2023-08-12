@@ -12,7 +12,7 @@ int tlen(tuple) asm "TLEN";
 }
 
 ;; testable
-(cell) caesar_cipher_encrypt(int shift, cell text) method_id {
+(cell) caesar_cipher_encrypt(int shift, cell text) inline method_id {
     slice s = text.begin_parse();
     tuple chain = empty_tuple();
     builder b = begin_cell();
