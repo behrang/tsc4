@@ -6,28 +6,23 @@
   this branch should be returned. Return empty cell if the branch is not found.
 -}
 
-() recv_internal() {
-}
+int tlen(tuple) asm "TLEN";
 
-(cell) find_recursive(int hash, cell tree) {
-    if (tree.cell_hash() == hash) {
-        return tree;
-    }
-    slice s = tree.begin_parse();
-    while (s.slice_refs()) {
-        cell found = find_recursive(hash, s~load_ref());
-        ifnot (found.null?()) {
-            return found;
-        }
-    }
-    return null();
+() recv_internal() {
 }
 
 ;; testable
 (cell) find_branch_by_hash(int hash, cell tree) method_id {
-    cell found = find_recursive(hash, tree);
-    ifnot (found.null?()) {
-        return found;
-    }
+    tuple stack = cons(tree, empty_tuple());
+    do {
+        ( cell c, stack ) = uncons(stack);
+        if (c.cell_hash() == hash) {
+            return c;
+        }
+        slice s = c.begin_parse();
+        while (s.slice_refs()) {
+            stack = cons(s~load_ref(), stack);
+        }
+    } until (stack.tlen() == 0);
     return begin_cell().end_cell();
 }
