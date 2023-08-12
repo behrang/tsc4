@@ -6,14 +6,12 @@
   character should go to the beginning. Return new text encoded in cell.
 -}
 
-int tlen(tuple) asm "TLEN";
-
 () recv_internal() {
 }
 
-;; testable
-(cell) caesar_cipher_encrypt(int shift, cell text) inline method_id {
+cell rotate(int shift, cell text) inline {
     slice s = text.begin_parse();
+    int n = 0;
     tuple chain = empty_tuple();
     builder b = begin_cell();
     b = b.store_uint(s~load_uint(32), 32);
@@ -21,16 +19,18 @@ int tlen(tuple) asm "TLEN";
     int stop? = false;
     do {
         ( int bits, int refs ) = s.slice_bits_refs();
-        if (bits) {
-            int c = s~load_uint(8);
-            if ((c >= 65) & (c <= 90)) {
-                c = ((c - 65 + shift) % 26) + 65;
-            } elseif ((c >= 97) & (c <= 122)) {
-                c = ((c - 97 + shift) % 26) + 97;
+        repeat (bits / 8) {
+            int char = s~load_uint(8);
+            if ((char >= 65) & (char <= 90)) {
+                char = ((char - 65 + shift) % 26) + 65;
+            } elseif ((char >= 97) & (char <= 122)) {
+                char = ((char - 97 + shift) % 26) + 97;
             }
-            b = b.store_uint(c, 8);
-        } elseif (refs) {
+            b = b.store_uint(char, 8);
+        }
+        if (refs) {
             s = s~load_ref().begin_parse();
+            n += 1;
             chain = cons(b, chain);
             b = begin_cell();
         } else {
@@ -39,7 +39,7 @@ int tlen(tuple) asm "TLEN";
     } until (stop?);
 
     cell c = b.end_cell();
-    while (chain.tlen()) {
+    repeat (n) {
         ( b, chain ) = uncons(chain);
         c = b.store_ref(c).end_cell();
     }
@@ -47,6 +47,11 @@ int tlen(tuple) asm "TLEN";
 }
 
 ;; testable
+(cell) caesar_cipher_encrypt(int shift, cell text) method_id {
+    return rotate(shift, text);
+}
+
+;; testable
 (cell) caesar_cipher_decrypt(int shift, cell text) method_id {
-    return caesar_cipher_encrypt(- shift, text);
+    return rotate(- shift, text);
 }
