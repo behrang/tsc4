@@ -13,26 +13,29 @@
   1923063428480944139667114773918309212080528]
 -}
 
+() generate(int f2, int f1, int k) impure asm "REPEAT:<{ DUP2 ADD }>";
+tuple make_tuple(int k) asm "TUPLEVAR";
+() cleanup() impure asm "1 PUSHINT ONLYTOPX";
+
+global int g;
+
 () recv_internal() {
 }
 
 ;; testable
 (tuple) fibonacci_sequence (int n, int k) method_id {
-    int f1 = 1;
-    int f2 = -1;
-    repeat (n) {
-        int t = f1 + f2;
-        f2 = f1;
-        f1 = t;
+    ifnot (k) {
+        return empty_tuple();
     }
 
-    tuple r = empty_tuple();
-    repeat (k) {
-        int t = f1 + f2;
-        f2 = f1;
-        f1 = t;
-        r~tpush(f1);
-    }
+    g = k;
 
-    return r;
+    int c = n + k - 1;
+    int f2 = 1;
+    int f1 = 0;
+
+    generate(f2, f1, c);
+    tuple t = make_tuple(g);
+    cleanup();
+    return t;
 }
