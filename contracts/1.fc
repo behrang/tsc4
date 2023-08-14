@@ -9,18 +9,41 @@
 () recv_internal() {
 }
 
+cell search(int hash, cell tree) asm """
+    AGAIN:<{
+        s0 s0 PUSH2
+        HASHCU
+        s3 PUSH
+        EQUAL
+        0 THROWARGIF
+
+        CTOS
+        DUP
+        SREFS
+        REPEAT:<{ LDREF s2 PUSH SWAP }>
+        DROP2
+
+        DEPTH
+        IFNOT:<{ NEWC ENDC 0 THROWARG }>
+    }>
+""";
+
 ;; testable
 (cell) find_branch_by_hash(int hash, cell tree) method_id {
-    tuple stack = cons(tree, null());
-    do {
-        ( cell c, stack ) = uncons(stack);
-        if (c.cell_hash() == hash) {
-            return c;
-        }
-        slice s = c.begin_parse();
-        repeat (s.slice_refs()) {
-            stack = cons(s~load_ref(), stack);
-        }
-    } until (stack.null?());
-    return begin_cell().end_cell();
+    return search(hash, tree);
 }
+
+;; (cell) find_branch_by_hash(int hash, cell tree) method_id {
+;;     tuple stack = cons(tree, null());
+;;     do {
+;;         ( cell c, stack ) = uncons(stack);
+;;         if (c.cell_hash() == hash) {
+;;             return c;
+;;         }
+;;         slice s = c.begin_parse();
+;;         repeat (s.slice_refs()) {
+;;             stack = cons(s~load_ref(), stack);
+;;         }
+;;     } until (stack.null?());
+;;     return begin_cell().end_cell();
+;; }
