@@ -37,7 +37,6 @@ cell rotate(int shift, cell text) inline {
     builder b = begin_cell();
     b = b.store_uint(s~load_uint(32), 32);
 
-    int stop? = false;
     do {
         ( int bits, int refs ) = s.slice_bits_refs();
         repeat (bits / 8) {
@@ -49,10 +48,8 @@ cell rotate(int shift, cell text) inline {
             n += 1;
             chain = cons(b, chain);
             b = begin_cell();
-        } else {
-            stop? = true;
         }
-    } until (stop?);
+    } until (refs == 0);
 
     cell c = b.end_cell();
     repeat (n) {
