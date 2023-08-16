@@ -10,21 +10,21 @@
 }
 
 cell search(int hash, cell tree) asm """
+    SAMEALTSAVE
     AGAIN:<{
-        s0 s0 PUSH2
+        s1 s0 PUSH2
         HASHCU
-        s3 PUSH
         EQUAL
-        0 THROWARGIF
+        IFJMP:<{ 1 RETURNARGS RETALT }>
 
         CTOS
         DUP
         SREFS
-        REPEAT:<{ LDREF s2 PUSH SWAP }>
+        REPEAT:<{ LDREF s2 s(-1) PUXC }>
         DROP2
 
         DEPTH
-        IFNOT:<{ NEWC ENDC 0 THROWARG }>
+        IFNOT:<{ c4 PUSH RETALT }>
     }>
 """;
 
