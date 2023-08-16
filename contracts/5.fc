@@ -15,7 +15,7 @@
 
 () generate(int f2, int f1, int k) impure asm "REPEAT:<{ DUP2 ADD }>";
 tuple make_tuple(int k) asm "TUPLEVAR";
-() cleanup() impure asm "1 PUSHINT ONLYTOPX";
+() cleanup() impure asm "ONE ONLYTOPX";
 
 global int g;
 
