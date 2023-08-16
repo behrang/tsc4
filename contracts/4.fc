@@ -9,19 +9,30 @@
 () recv_internal() {
 }
 
-const int A = "A"u;
-const int Z = "Z"u;
-const int a = "a"u;
-const int z = "z"u;
-
-tuple generate(int, int) asm "25 INT REPEAT:<{ DUP INC }> 26 INT ROLLX DUP 26 INT SUBR BLKSWX 26 INT TUPLEVAR";
+tuple make_table(int, int) asm """
+    ZERO 90 INT REPEAT:<{ DUP INC }>
+    92 s() PUSH
+    92 s() PUSH
+    BLKSWX
+    91 INT 31 INT REPEAT:<{ DUP INC }>
+    124 s() PUSH
+    124 s() PUSH
+    BLKSWX
+    123 INT 131 INT REPEAT:<{ DUP INC }>
+    255 INT TUPLEVAR
+    2 1 BLKDROP2
+""";
 
 cell rotate(int shift, cell text) inline {
-    shift %= 26;
-    tuple us = generate(shift, A);
-    tuple ls = generate(shift, a);
+    int i = shift % 26;
+    ifnot (i) {
+        return text;
+    }
+    int j = 26 - i;
+    tuple table = make_table(i, j);
 
     slice s = text.begin_parse();
+    int n = 0;
     tuple chain = null();
     builder b = begin_cell();
     b = b.store_uint(s~load_uint(32), 32);
@@ -31,15 +42,11 @@ cell rotate(int shift, cell text) inline {
         ( int bits, int refs ) = s.slice_bits_refs();
         repeat (bits / 8) {
             int char = s~load_uint(8);
-            if ((char >= A) & (char <= Z)) {
-                char = us.at(char - A);
-            } elseif ((char >= a) & (char <= z)) {
-                char = ls.at(char - a);
-            }
-            b = b.store_uint(char, 8);
+            b = b.store_uint(table.at(char), 8);
         }
         if (refs) {
             s = s~load_ref().begin_parse();
+            n += 1;
             chain = cons(b, chain);
             b = begin_cell();
         } else {
@@ -48,7 +55,7 @@ cell rotate(int shift, cell text) inline {
     } until (stop?);
 
     cell c = b.end_cell();
-    while (~ chain.null?()) {
+    repeat (n) {
         ( b, chain ) = uncons(chain);
         c = b.store_ref(c).end_cell();
     }
